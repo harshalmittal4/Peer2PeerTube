@@ -27,13 +27,13 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def __init__(self, maxpeers, serverport):
-    #--------------------------------------------------------------------------
-	""" Initializes the peer to support connections up to maxpeers number
-	of peers, with its server listening on the specified port. Also sets
-	the dictionary of local files to empty and adds handlers to the 
-	BTPeer framework.
+	    #--------------------------------------------------------------------------
+		""" Initializes the peer to support connections up to maxpeers number
+		of peers, with its server listening on the specified port. Also sets
+		the dictionary of local files to empty and adds handlers to the 
+		BTPeer framework.
 
-	"""
+		"""
 		BTPeer.__init__(self, maxpeers, serverport)
 		
 		self.files = {}  # available files: name --> peerid mapping
@@ -77,14 +77,14 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def __handle_insertpeer(self, peerconn, data):
-    #--------------------------------------------------------------------------
-	""" Handles the INSERTPEER (join) message type. The message data
-	should be a string of the form, "peerid  host  port", where peer-id
-	is the canonical name of the peer that desires to be added to this
-	peer's list of peers, host and port are the necessary data to connect
-	to the peer.
+	    #--------------------------------------------------------------------------
+		""" Handles the INSERTPEER (join) message type. The message data
+		should be a string of the form, "peerid  host  port", where peer-id
+		is the canonical name of the peer that desires to be added to this
+		peer's list of peers, host and port are the necessary data to connect
+		to the peer.
 
-	"""
+		"""
 		self.peerlock.acquire()
 		try:
 		    try:
@@ -116,8 +116,8 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def __handle_listpeers(self, peerconn, data):
-    #--------------------------------------------------------------------------
-	""" Handles the LISTPEERS message type. Message data is not used. """
+	    #--------------------------------------------------------------------------
+		""" Handles the LISTPEERS message type. Message data is not used. """
 		self.peerlock.acquire()
 		try:
 		    self.__debug('Listing peers %d' % self.numberofpeers())
@@ -132,8 +132,8 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def __handle_peername(self, peerconn, data):
-    #--------------------------------------------------------------------------
-	""" Handles the NAME message type. Message data is not used. """
+	    #--------------------------------------------------------------------------
+		""" Handles the NAME message type. Message data is not used. """
 		peerconn.senddata(REPLY, self.myid)
 
 
@@ -141,15 +141,15 @@ class FilerPeer(BTPeer):
     # QUERY arguments: "return-peerid key ttl"
     #--------------------------------------------------------------------------
     def __handle_query(self, peerconn, data):
-    #--------------------------------------------------------------------------
-	""" Handles the QUERY message type. The message data should be in the
-	format of a string, "return-peer-id  key  ttl", where return-peer-id
-	is the name of the peer that initiated the query, key is the (portion
-	of the) file name being searched for, and ttl is how many further 
-	levels of peers this query should be propagated on.
+	    #--------------------------------------------------------------------------
+		""" Handles the QUERY message type. The message data should be in the
+		format of a string, "return-peer-id  key  ttl", where return-peer-id
+		is the name of the peer that initiated the query, key is the (portion
+		of the) file name being searched for, and ttl is how many further 
+		levels of peers this query should be propagated on.
 
-	"""
-	# self.peerlock.acquire()
+		"""
+		# self.peerlock.acquire()
 		try:
 		    peerid, key, ttl = data.split()
 		    peerconn.senddata(REPLY, 'Query ACK: %s' % key)
@@ -167,13 +167,13 @@ class FilerPeer(BTPeer):
     # 
     #--------------------------------------------------------------------------
     def __processquery(self, peerid, key, ttl):
-    #--------------------------------------------------------------------------
-	""" Handles the processing of a query message after it has been 
-	received and acknowledged, by either replying with a QRESPONSE message
-	if the file is found in the local list of files, or propagating the
-	message onto all immediate neighbors.
+	    #--------------------------------------------------------------------------
+		""" Handles the processing of a query message after it has been 
+		received and acknowledged, by either replying with a QRESPONSE message
+		if the file is found in the local list of files, or propagating the
+		message onto all immediate neighbors.
 
-	"""
+		"""
 		for fname in self.files.keys():
 		    if key in fname:
 				fpeerid = self.files[fname]
@@ -197,13 +197,13 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def __handle_qresponse(self, peerconn, data):
-    #--------------------------------------------------------------------------
-	""" Handles the QRESPONSE message type. The message data should be
-	in the format of a string, "file-name  peer-id", where file-name is
-	the file that was queried about and peer-id is the name of the peer
-	that has a copy of the file.
+	    #--------------------------------------------------------------------------
+		""" Handles the QRESPONSE message type. The message data should be
+		in the format of a string, "file-name  peer-id", where file-name is
+		the file that was queried about and peer-id is the name of the peer
+		that has a copy of the file.
 
-	"""
+		"""
 		try:
 		    fname, fpeerid = data.split()
 		    if fname in self.files:
@@ -219,12 +219,12 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def __handle_fileget(self, peerconn, data):
-    #--------------------------------------------------------------------------
-	""" Handles the FILEGET message type. The message data should be in
-	the format of a string, "file-name", where file-name is the name
-	of the file to be fetched.
+	    #--------------------------------------------------------------------------
+		""" Handles the FILEGET message type. The message data should be in
+		the format of a string, "file-name", where file-name is the name
+		of the file to be fetched.
 
-	"""
+		"""
 		fname = data
 		if fname not in self.files:
 		    self.__debug('File not found %s' % fname)
@@ -250,13 +250,13 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def __handle_quit(self, peerconn, data):
-    #--------------------------------------------------------------------------
-	""" Handles the QUIT message type. The message data should be in the
-	format of a string, "peer-id", where peer-id is the canonical
-	name of the peer that wishes to be unregistered from this
-	peer's directory.
+	    #--------------------------------------------------------------------------
+		""" Handles the QUIT message type. The message data should be in the
+		format of a string, "peer-id", where peer-id is the canonical
+		name of the peer that wishes to be unregistered from this
+		peer's directory.
 
-	"""
+		"""
 		self.peerlock.acquire()
 		try:
 		    peerid = data.lstrip().rstrip()
@@ -278,15 +278,15 @@ class FilerPeer(BTPeer):
     #               into this function
     #--------------------------------------------------------------------------
     def buildpeers(self, host, port, hops=1):
-    #--------------------------------------------------------------------------
-	""" buildpeers(host, port, hops) 
+	    #--------------------------------------------------------------------------
+		""" buildpeers(host, port, hops) 
 
-	Attempt to build the local peer list up to the limit stored by
-	self.maxpeers, using a simple depth-first search given an
-	initial host and port as starting point. The depth of the
-	search is limited by the hops parameter.
+		Attempt to build the local peer list up to the limit stored by
+		self.maxpeers, using a simple depth-first search given an
+		initial host and port as starting point. The depth of the
+		search is limited by the hops parameter.
 
-	"""
+		"""
 		if self.maxpeersreached() or not hops:
 		    return
 
@@ -327,7 +327,7 @@ class FilerPeer(BTPeer):
 
     #--------------------------------------------------------------------------
     def addlocalfile(self, filename):
-    #--------------------------------------------------------------------------
-	""" Registers a locally-stored file with the peer. """
+	    #--------------------------------------------------------------------------
+		""" Registers a locally-stored file with the peer. """
 		self.files[filename] = None
 		self.__debug("Added local file %s" % filename)

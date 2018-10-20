@@ -123,18 +123,18 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def setmyid( self, myid ):
-    #--------------------------------------------------------------------------
+	    #--------------------------------------------------------------------------
 		self.myid = myid
 
 
 
     #--------------------------------------------------------------------------
     def startstabilizer( self, stabilizer, delay ):
-    #--------------------------------------------------------------------------
-	""" Registers and starts a stabilizer function with this peer. 
-	The function will be activated every <delay> seconds. 
+	    #--------------------------------------------------------------------------
+		""" Registers and starts a stabilizer function with this peer. 
+		The function will be activated every <delay> seconds. 
 
-	"""
+		"""
 		t = threading.Thread( target = self.__runstabilizer, 
 				      args = [ stabilizer, delay ] )
 		t.start()
@@ -143,8 +143,8 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def addhandler( self, msgtype, handler ):
-    #--------------------------------------------------------------------------
-	""" Registers the handler for the given message type with this peer """
+	    #--------------------------------------------------------------------------
+		""" Registers the handler for the given message type with this peer """
 		assert len(msgtype) == 4
 		self.handlers[ msgtype ] = handler
 
@@ -152,28 +152,28 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def addrouter( self, router ):
-    #--------------------------------------------------------------------------
-	""" Registers a routing function with this peer. The setup of routing
-	is as follows: This peer maintains a list of other known peers
-	(in self.peers). The routing function should take the name of
-	a peer (which may not necessarily be present in self.peers)
-	and decide which of the known peers a message should be routed
-	to next in order to (hopefully) reach the desired peer. The router
-	function should return a tuple of three values: (next-peer-id, host,
-	port). If the message cannot be routed, the next-peer-id should be
-	None.
+	    #--------------------------------------------------------------------------
+		""" Registers a routing function with this peer. The setup of routing
+		is as follows: This peer maintains a list of other known peers
+		(in self.peers). The routing function should take the name of
+		a peer (which may not necessarily be present in self.peers)
+		and decide which of the known peers a message should be routed
+		to next in order to (hopefully) reach the desired peer. The router
+		function should return a tuple of three values: (next-peer-id, host,
+		port). If the message cannot be routed, the next-peer-id should be
+		None.
 
-	"""
+		"""
 		self.router = router
 
 
 
     #--------------------------------------------------------------------------
     def addpeer( self, peerid, host, port ):
-    #--------------------------------------------------------------------------
-	""" Adds a peer name and host:port mapping to the known list of peers.
-	
-	"""
+	    #--------------------------------------------------------------------------
+		""" Adds a peer name and host:port mapping to the known list of peers.
+		
+		"""
 		if peerid not in self.peers and (self.maxpeers == 0 or len(self.peers) < self.maxpeers):
 		    self.peers[ peerid ] = (host, int(port))
 		    return True
@@ -184,8 +184,8 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def getpeer( self, peerid ):
-    #--------------------------------------------------------------------------
-	""" Returns the (host, port) tuple for the given peer name """
+	    #--------------------------------------------------------------------------
+		""" Returns the (host, port) tuple for the given peer name """
 		assert peerid in self.peers    # maybe make this just a return NULL?
 		return self.peers[ peerid ]
 
@@ -193,8 +193,8 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def removepeer( self, peerid ):
-    #--------------------------------------------------------------------------
-	""" Removes peer information from the known list of peers. """
+	    #--------------------------------------------------------------------------
+		""" Removes peer information from the known list of peers. """
 		if peerid in self.peers:
 		    del self.peers[ peerid ]
 
@@ -202,13 +202,13 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def addpeerat( self, loc, peerid, host, port ):
-    #--------------------------------------------------------------------------
-	""" Inserts a peer's information at a specific position in the 
-	list of peers. The functions addpeerat, getpeerat, and removepeerat
-	should not be used concurrently with addpeer, getpeer, and/or 
-	removepeer. 
+	    #--------------------------------------------------------------------------
+		""" Inserts a peer's information at a specific position in the 
+		list of peers. The functions addpeerat, getpeerat, and removepeerat
+		should not be used concurrently with addpeer, getpeer, and/or 
+		removepeer. 
 
-	"""
+		"""
 		self.peers[ loc ] = (peerid, host, int(port))
 
 
@@ -231,28 +231,28 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def getpeerids( self ):
-    #--------------------------------------------------------------------------
-	""" Return a list of all known peer id's. """
+	    #--------------------------------------------------------------------------
+		""" Return a list of all known peer id's. """
 		return self.peers.keys()
 
 
 
     #--------------------------------------------------------------------------
     def numberofpeers( self ):
-    #--------------------------------------------------------------------------
-	""" Return the number of known peer's. """
+	    #--------------------------------------------------------------------------
+		""" Return the number of known peer's. """
 		return len(self.peers)
 
 
     
     #--------------------------------------------------------------------------
     def maxpeersreached( self ):
-    #--------------------------------------------------------------------------
-	""" Returns whether the maximum limit of names has been added to the
-	list of known peers. Always returns True if maxpeers is set to
-	0.
+	    #--------------------------------------------------------------------------
+		""" Returns whether the maximum limit of names has been added to the
+		list of known peers. Always returns True if maxpeers is set to
+		0.
 
-	"""
+		"""
 		assert self.maxpeers == 0 or len(self.peers) <= self.maxpeers
 		return self.maxpeers > 0 and len(self.peers) == self.maxpeers
 
@@ -260,11 +260,11 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def makeserversocket( self, port, backlog=5 ):
-    #--------------------------------------------------------------------------
-	""" Constructs and prepares a server socket listening on the given 
-	port.
+	    #--------------------------------------------------------------------------
+		""" Constructs and prepares a server socket listening on the given 
+		port.
 
-	"""
+		"""
 		s = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		s.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
 		s.bind( ( '', port ) )
@@ -275,20 +275,20 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def sendtopeer( self, peerid, msgtype, msgdata, waitreply=True ):
-    #--------------------------------------------------------------------------
-	"""
-	sendtopeer( peer id, message type, message data, wait for a reply )
-	 -> [ ( reply type, reply data ), ... ] 
+	    #--------------------------------------------------------------------------
+		"""
+		sendtopeer( peer id, message type, message data, wait for a reply )
+		 -> [ ( reply type, reply data ), ... ] 
 
-	Send a message to the identified peer. In order to decide how to
-	send the message, the router handler for this peer will be called.
-	If no router function has been registered, it will not work. The
-	router function should provide the next immediate peer to whom the 
-	message should be forwarded. The peer's reply, if it is expected, 
-	will be returned.
+		Send a message to the identified peer. In order to decide how to
+		send the message, the router handler for this peer will be called.
+		If no router function has been registered, it will not work. The
+		router function should provide the next immediate peer to whom the 
+		message should be forwarded. The peer's reply, if it is expected, 
+		will be returned.
 
-	Returns None if the message could not be routed.
-	"""
+		Returns None if the message could not be routed.
+		"""
 
 		if self.router:
 		    nextpid, host, port = self.router( peerid )
@@ -301,17 +301,16 @@ class BTPeer:
 
 
     #--------------------------------------------------------------------------
-    def connectandsend( self, host, port, msgtype, msgdata, 
-			pid=None, waitreply=True ):
-    #--------------------------------------------------------------------------
-	"""
-	connectandsend( host, port, message type, message data, peer id,
-	wait for a reply ) -> [ ( reply type, reply data ), ... ]
+    def connectandsend( self, host, port, msgtype, msgdata, pid=None, waitreply=True ):
+	    #--------------------------------------------------------------------------
+		"""
+		connectandsend( host, port, message type, message data, peer id,
+		wait for a reply ) -> [ ( reply type, reply data ), ... ]
 
-	Connects and sends a message to the specified host:port. The host's
-	reply, if expected, will be returned as a list of tuples.
+		Connects and sends a message to the specified host:port. The host's
+		reply, if expected, will be returned as a list of tuples.
 
-	"""
+		"""
 		msgreply = []
 		try:
 		    peerconn = BTPeerConnection( pid, host, port, debug=self.debug )
@@ -340,12 +339,12 @@ class BTPeer:
 
     #--------------------------------------------------------------------------
     def checklivepeers( self ):
-    #--------------------------------------------------------------------------
-	""" Attempts to ping all currently known peers in order to ensure that
-	they are still active. Removes any from the peer list that do
-	not reply. This function can be used as a simple stabilizer.
+	    #--------------------------------------------------------------------------
+		""" Attempts to ping all currently known peers in order to ensure that
+		they are still active. Removes any from the peer list that do
+		not reply. This function can be used as a simple stabilizer.
 
-	"""
+		"""
 		todelete = []
 		for pid in self.peers:
 		    isconnected = False
@@ -448,13 +447,13 @@ class BTPeerConnection:
 
     #--------------------------------------------------------------------------
     def senddata( self, msgtype, msgdata ):
-    #--------------------------------------------------------------------------
-	"""
-	senddata( message type, message data ) -> boolean status
+	    #--------------------------------------------------------------------------
+		"""
+		senddata( message type, message data ) -> boolean status
 
-	Send a message through a peer connection. Returns True on success
-	or False if there was an error.
-	"""
+		Send a message through a peer connection. Returns True on success
+		or False if there was an error.
+		"""
 
 		try:
 		    msg = self.__makemsg( msgtype, msgdata )
@@ -471,13 +470,13 @@ class BTPeerConnection:
 
     #--------------------------------------------------------------------------
     def recvdata( self ):
-    #--------------------------------------------------------------------------
-	"""
-	recvdata() -> (msgtype, msgdata)
+		#--------------------------------------------------------------------------
+		"""
+		recvdata() -> (msgtype, msgdata)
 
-	Receive a message from a peer connection. Returns (None, None)
-	if there was any error.
-	"""
+		Receive a message from a peer connection. Returns (None, None)
+		if there was any error.
+		"""
 
 		try:
 		    msgtype = self.sd.read( 4 )
@@ -510,13 +509,13 @@ class BTPeerConnection:
 
     #--------------------------------------------------------------------------
     def close( self ):
-    #--------------------------------------------------------------------------
-	"""
-	close()
+	    #--------------------------------------------------------------------------
+		"""
+		close()
 
-	Close the peer connection. The send and recv methods will not work
-	after this call.
-	"""
+		Close the peer connection. The send and recv methods will not work
+		after this call.
+		"""
 
 		self.s.close()
 		self.s = None
