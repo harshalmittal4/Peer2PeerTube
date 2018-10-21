@@ -36,7 +36,7 @@ class FilerPeer(BTPeer):
 		"""
 		BTPeer.__init__(self, maxpeers, serverport)
 		contents=os.listdir("shared")
-		l=["None"]*len(contents)
+		l=[None]*len(contents)
 		self.files = dict(zip(contents,l))  # available files: name --> peerid mapping
 		print(self.files)
 
