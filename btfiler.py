@@ -236,17 +236,14 @@ class FilerPeer(BTPeer):
 			while True:
 				data = fd.read(2048)
 				if not len(data):
-					break;
+					break
+				peerconn.senddata(REPLY, data)
 				filedata += data
 			fd.close()
 		except:
 			self.__debug('Error reading file %s' % fname)
 			peerconn.senddata(ERROR, 'Error reading file')
 			return
-		
-		peerconn.senddata(REPLY, filedata)
-
-
 
 	#--------------------------------------------------------------------------
 	def __handle_quit(self, peerconn, data):

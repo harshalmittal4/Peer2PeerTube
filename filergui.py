@@ -21,7 +21,7 @@ class BTGui(Frame):
       Frame.__init__( self, master )
       self.grid()
       self.createWidgets()
-      self.master.title( "BerryTella Filer GUI %d" % serverport )
+      self.master.title( "Peer to Peer Youtube %d" % serverport )
       self.btpeer = FilerPeer( maxpeers, serverport )
       
       self.bind( "<Destroy>", self.__onDestroy )
@@ -167,12 +167,6 @@ class BTGui(Frame):
          if len(sel) > 2:  # fname:host:port
             fname,host,port = sel
             resp = self.btpeer.connectandsend( host, port, FILEGET, fname )
-            if len(resp) and resp[0][0] == REPLY:
-               fd = file( fname, 'w' )
-               fd.write( resp[0][1] )
-               fd.close()
-               self.btpeer.files[fname] = None  # because it's local now
-
 
    def onRemove(self):
       sels = self.peerList.curselection()

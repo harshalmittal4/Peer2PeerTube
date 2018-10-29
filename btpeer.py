@@ -7,7 +7,8 @@ import struct
 import threading
 import time
 import traceback
-
+import os
+import vlc
 
 def btdebug( msg ):
 	""" Prints a messsage to the screen with the name of the current thread """
@@ -311,6 +312,9 @@ class BTPeer:
 		reply, if expected, will be returned as a list of tuples.
 
 		"""
+		file_recv = False
+		if msgtype=="FGET":
+			file_recv=True
 		msgreply = []
 		try:
 			peerconn = BTPeerConnection( pid, host, port, debug=self.debug )
@@ -318,12 +322,12 @@ class BTPeer:
 			self.__debug( 'Sent %s: %s' % (pid, msgtype) )
 			
 			if waitreply:
-				onereply = peerconn.recvdata()
+				onereply = peerconn.recvdata(file_recv, msgdata)
 				while (onereply != (None,None)):
 					msgreply.append( onereply )
 					self.__debug( 'Got reply %s: %s' 
 						  % ( pid, str(msgreply) ) )
-					onereply = peerconn.recvdata()
+					onereply = peerconn.recvdata(file_recv, msgdata)
 			peerconn.close()
 		except KeyboardInterrupt:
 			raise
@@ -445,9 +449,7 @@ class BTPeerConnection:
 			btdebug( msg )
 
 
-	#--------------------------------------------------------------------------
 	def senddata( self, msgtype, msgdata ):
-		#--------------------------------------------------------------------------
 		"""
 		senddata( message type, message data ) -> boolean status
 
@@ -465,11 +467,10 @@ class BTPeerConnection:
 			if self.debug:
 				traceback.print_exc()
 			return False
-		return True
-		
+		return True		
 
 	#--------------------------------------------------------------------------
-	def recvdata( self ):
+	def recvdata( self, file_recv=False , fname=None):
 		#--------------------------------------------------------------------------
 		"""
 		recvdata() -> (msgtype, msgdata)
@@ -477,7 +478,8 @@ class BTPeerConnection:
 		Receive a message from a peer connection. Returns (None, None)
 		if there was any error.
 		"""
-
+		if not fname and file_recv:
+			fname = os.path.join(os.getcwd(), fname)
 		try:
 			msgtype = self.sd.read( 4 )
 			if not msgtype: return (None, None)
@@ -485,9 +487,27 @@ class BTPeerConnection:
 			lenstr = self.sd.read( 4 )
 			msglen = int(struct.unpack( "!L", lenstr )[0])
 			msg = ""
-
+			i=0
 			while len(msg) != msglen:
 				data = self.sd.read( min(2048, msglen - len(msg)) )
+				if file_recv:
+					if not os.path.isfile(fname):
+						fd = open(fname, 'w')
+						fd.write(data)
+						fd.close()
+						vlc_instance = vlc.Instance('--fullscreen')
+						player = vlc_instance.media_player_new()
+						media = vlc_instance.media_new(fname)
+						player.set_fullscreen(True)
+						player.set_media(media)
+						player.play()
+					else:
+						fp = open(fname, 'a')
+						fp.write(data)
+						fp.close()
+					print 'writing content',i
+					i+=1	
+				
 				if not len(data):
 					break
 				msg += data
