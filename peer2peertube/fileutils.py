@@ -12,7 +12,7 @@ PEERQUIT = "QUIT"
 
 REPLY = "REPL"
 ERROR = "ERRO"
-
+import os
 
 # Assumption in this program:
 #   peer id's in this application are just "host:port" strings
@@ -29,9 +29,11 @@ class FilerPeer(Peer):
 		Peer framework.
 		"""
 		Peer.__init__(self, maxpeers, serverport)
+		contents=os.listdir("shared")
+		l=[None]*len(contents)
+		self.files = dict(zip(contents,l))  # available files: name --> peerid mapping
+		print(self.files)
 		
-		self.files = {}  # available files: name --> peerid mapping
-
 		self.addrouter(self.__router)
 
 		handlers = {LISTPEERS : self.__handle_listpeers,
