@@ -1,29 +1,26 @@
 #!/usr/bin/python
 
-# btpeer.py
-
 import socket
 import struct
 import threading
 import time
 import traceback
+import os
+import vlc
 
-
-def btdebug( msg ):
-	""" Prints a messsage to the screen with the name of the current thread """
+def debug( msg ):
+	""" Prints a messsage to the screen with the name of the current thread 
+	"""
+	
 	print "[%s] %s" % ( str(threading.currentThread().getName()), msg )
 
 
-#==============================================================================
-class BTPeer:
+class Peer:
 	""" Implements the core functionality that might be used by a peer in a
 	P2P network.
-
 	"""
 
-	#--------------------------------------------------------------------------
 	def __init__( self, maxpeers, serverport, myid=None, serverhost = None ):
-		#--------------------------------------------------------------------------
 		""" Initializes a peer servent (sic.) with the ability to catalog
 		information for up to maxpeers number of peers (maxpeers may
 		be set to 0 to allow unlimited number of peers), listening on
@@ -31,8 +28,8 @@ class BTPeer:
 		and host address. If not supplied, the host address
 		(serverhost) will be determined by attempting to connect to an
 		Internet host like Google.
-
 		"""
+
 		self.debug = 1
 
 		self.maxpeers = int(maxpeers)
@@ -53,32 +50,23 @@ class BTPeer:
 		self.router = None
 
 
-
-	#--------------------------------------------------------------------------
 	def __initserverhost( self ):
-		#--------------------------------------------------------------------------
 		""" Attempt to connect to an Internet host in order to determine the
 		local machine's IP address.
-
 		"""
+
 		s = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		s.connect( ( "www.google.com", 80 ) )
 		self.serverhost = s.getsockname()[0]
 		s.close()
 
-
-
-	#--------------------------------------------------------------------------
+	 
 	def __debug( self, msg ):
-	#--------------------------------------------------------------------------
 		if self.debug:
-			btdebug( msg )
+			debug( msg )
 
 
-
-	#--------------------------------------------------------------------------
 	def __handlepeer( self, clientsock ):
-		#--------------------------------------------------------------------------
 		"""
 		handlepeer( new socket connection ) -> ()
 
@@ -89,7 +77,7 @@ class BTPeer:
 		self.__debug( 'Connected ' + str(clientsock.getpeername()) )
 
 		host, port = clientsock.getpeername()
-		peerconn = BTPeerConnection( None, host, port, clientsock, debug=False )
+		peerconn = PeerConnection( None, host, port, clientsock, debug=False )
 		
 		try:
 			msgtype, msgdata = peerconn.recvdata()
@@ -107,52 +95,36 @@ class BTPeer:
 		
 		self.__debug( 'Disconnecting ' + str(clientsock.getpeername()) )
 		peerconn.close()
-
-	# end handlepeer method
-
-
-
-	#--------------------------------------------------------------------------
+	 
 	def __runstabilizer( self, stabilizer, delay ):
-	#--------------------------------------------------------------------------
 		while not self.shutdown:
 			stabilizer()
 			time.sleep( delay )
 
-		
 
-	#--------------------------------------------------------------------------
 	def setmyid( self, myid ):
-		#--------------------------------------------------------------------------
 		self.myid = myid
 
 
-
-	#--------------------------------------------------------------------------
 	def startstabilizer( self, stabilizer, delay ):
-		#--------------------------------------------------------------------------
 		""" Registers and starts a stabilizer function with this peer. 
 		The function will be activated every <delay> seconds. 
-
 		"""
+
 		t = threading.Thread( target = self.__runstabilizer, 
 					  args = [ stabilizer, delay ] )
 		t.start()
 
-	
 
-	#--------------------------------------------------------------------------
 	def addhandler( self, msgtype, handler ):
-		#--------------------------------------------------------------------------
-		""" Registers the handler for the given message type with this peer """
+		""" Registers the handler for the given message type with this peer 
+		"""
+
 		assert len(msgtype) == 4
 		self.handlers[ msgtype ] = handler
 
 
-
-	#--------------------------------------------------------------------------
 	def addrouter( self, router ):
-		#--------------------------------------------------------------------------
 		""" Registers a routing function with this peer. The setup of routing
 		is as follows: This peer maintains a list of other known peers
 		(in self.peers). The routing function should take the name of
@@ -162,17 +134,11 @@ class BTPeer:
 		function should return a tuple of three values: (next-peer-id, host,
 		port). If the message cannot be routed, the next-peer-id should be
 		None.
-
 		"""
 		self.router = router
-
-
-
-	#--------------------------------------------------------------------------
+	 
 	def addpeer( self, peerid, host, port ):
-		#--------------------------------------------------------------------------
 		""" Adds a peer name and host:port mapping to the known list of peers.
-		
 		"""
 		if peerid not in self.peers and (self.maxpeers == 0 or len(self.peers) < self.maxpeers):
 			self.peers[ peerid ] = (host, int(port))
@@ -181,89 +147,61 @@ class BTPeer:
 			return False
 
 
-
-	#--------------------------------------------------------------------------
 	def getpeer( self, peerid ):
-		#--------------------------------------------------------------------------
-		""" Returns the (host, port) tuple for the given peer name """
+		""" Returns the (host, port) tuple for the given peer name 
+		"""
 		assert peerid in self.peers    # maybe make this just a return NULL?
 		return self.peers[ peerid ]
 
 
-
-	#--------------------------------------------------------------------------
 	def removepeer( self, peerid ):
-		#--------------------------------------------------------------------------
-		""" Removes peer information from the known list of peers. """
+		""" Removes peer information from the known list of peers. 
+		"""
 		if peerid in self.peers:
 			del self.peers[ peerid ]
 
 
-
-	#--------------------------------------------------------------------------
 	def addpeerat( self, loc, peerid, host, port ):
-		#--------------------------------------------------------------------------
 		""" Inserts a peer's information at a specific position in the 
 		list of peers. The functions addpeerat, getpeerat, and removepeerat
 		should not be used concurrently with addpeer, getpeer, and/or 
 		removepeer. 
-
 		"""
 		self.peers[ loc ] = (peerid, host, int(port))
 
-
-
-	#--------------------------------------------------------------------------
 	def getpeerat( self, loc ):
-	#--------------------------------------------------------------------------
 		if loc not in self.peers:
 			return None
 		return self.peers[ loc ]
 
-
-
-	#--------------------------------------------------------------------------
 	def removepeerat( self, loc ):
-	#--------------------------------------------------------------------------
-		removepeer( self, loc ) 
+		removepeer( self, loc )
 
 
-
-	#--------------------------------------------------------------------------
 	def getpeerids( self ):
-		#--------------------------------------------------------------------------
-		""" Return a list of all known peer id's. """
+		""" Return a list of all known peer id's. 
+		"""
 		return self.peers.keys()
 
 
-
-	#--------------------------------------------------------------------------
 	def numberofpeers( self ):
-		#--------------------------------------------------------------------------
-		""" Return the number of known peer's. """
+		""" Return the number of known peer's. 
+		"""
 		return len(self.peers)
 
 
-	
-	#--------------------------------------------------------------------------
 	def maxpeersreached( self ):
-		#--------------------------------------------------------------------------
 		""" Returns whether the maximum limit of names has been added to the
 		list of known peers. Always returns True if maxpeers is set to
 		0.
-
 		"""
 		assert self.maxpeers == 0 or len(self.peers) <= self.maxpeers
 		return self.maxpeers > 0 and len(self.peers) == self.maxpeers
 
 
-
-	#--------------------------------------------------------------------------
 	def makeserversocket( self, port, backlog=5 ):
-		#--------------------------------------------------------------------------
 		""" Constructs and prepares a server socket listening on the given 
 		port.
-
 		"""
 		s = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 		s.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
@@ -272,10 +210,7 @@ class BTPeer:
 		return s
 
 
-
-	#--------------------------------------------------------------------------
 	def sendtopeer( self, peerid, msgtype, msgdata, waitreply=True ):
-		#--------------------------------------------------------------------------
 		"""
 		sendtopeer( peer id, message type, message data, wait for a reply )
 		 -> [ ( reply type, reply data ), ... ] 
@@ -299,31 +234,30 @@ class BTPeer:
 		return self.connectandsend( host, port, msgtype, msgdata,pid=nextpid,waitreply=waitreply )
 		
 
-
-	#--------------------------------------------------------------------------
 	def connectandsend( self, host, port, msgtype, msgdata, pid=None, waitreply=True ):
-		#--------------------------------------------------------------------------
 		"""
 		connectandsend( host, port, message type, message data, peer id,
 		wait for a reply ) -> [ ( reply type, reply data ), ... ]
 
 		Connects and sends a message to the specified host:port. The host's
 		reply, if expected, will be returned as a list of tuples.
-
 		"""
+		file_recv = False
+		if msgtype=="FGET":
+			file_recv=True
 		msgreply = []
 		try:
-			peerconn = BTPeerConnection( pid, host, port, debug=self.debug )
+			peerconn = PeerConnection( pid, host, port, debug=self.debug )
 			peerconn.senddata( msgtype, msgdata )
 			self.__debug( 'Sent %s: %s' % (pid, msgtype) )
 			
 			if waitreply:
-				onereply = peerconn.recvdata()
+				onereply = peerconn.recvdata(file_recv, msgdata)
 				while (onereply != (None,None)):
 					msgreply.append( onereply )
 					self.__debug( 'Got reply %s: %s' 
 						  % ( pid, str(msgreply) ) )
-					onereply = peerconn.recvdata()
+					onereply = peerconn.recvdata(file_recv, msgdata)
 			peerconn.close()
 		except KeyboardInterrupt:
 			raise
@@ -335,15 +269,10 @@ class BTPeer:
 
 	# end connectsend method
 
-
-
-	#--------------------------------------------------------------------------
 	def checklivepeers( self ):
-		#--------------------------------------------------------------------------
 		""" Attempts to ping all currently known peers in order to ensure that
 		they are still active. Removes any from the peer list that do
 		not reply. This function can be used as a simple stabilizer.
-
 		"""
 		todelete = []
 		for pid in self.peers:
@@ -351,7 +280,7 @@ class BTPeer:
 			try:
 				self.__debug( 'Check live %s' % pid )
 				host,port = self.peers[pid]
-				peerconn = BTPeerConnection( pid, host, port, debug=self.debug )
+				peerconn = PeerConnection( pid, host, port, debug=self.debug )
 				peerconn.senddata( 'PING', '' )
 				isconnected = True
 			except:
@@ -364,13 +293,9 @@ class BTPeer:
 				if pid in self.peers: del self.peers[pid]
 		finally:
 			self.peerlock.release()
-	# end checklivepeers method
 
 
-
-	#--------------------------------------------------------------------------
 	def mainloop( self ):
-	#--------------------------------------------------------------------------
 		s = self.makeserversocket( self.serverport )
 		s.settimeout(2)
 		self.__debug( 'Server started: %s (%s:%d)'
@@ -399,23 +324,9 @@ class BTPeer:
 
 		s.close()
 
-	# end mainloop method
 
-# end BTPeer class
-
-
-
-
-# **********************************************************
-
-
-
-
-class BTPeerConnection:
-
-	#--------------------------------------------------------------------------
+class PeerConnection:
 	def __init__( self, peerid, host, port, sock=None, debug=False ):
-	#--------------------------------------------------------------------------
 	# any exceptions thrown upwards
 
 		self.id = peerid
@@ -429,25 +340,19 @@ class BTPeerConnection:
 
 		self.sd = self.s.makefile( 'rw', 0 )
 
-
-	#--------------------------------------------------------------------------
+	 
 	def __makemsg( self, msgtype, msgdata ):
-		#--------------------------------------------------------------------------
 		msglen = len(msgdata)
 		msg = struct.pack( "!4sL%ds" % msglen, msgtype, msglen, msgdata )
 		return msg
 
 
-	#--------------------------------------------------------------------------
 	def __debug( self, msg ):
-	#--------------------------------------------------------------------------
 		if self.debug:
-			btdebug( msg )
+			debug( msg )
 
 
-	#--------------------------------------------------------------------------
 	def senddata( self, msgtype, msgdata ):
-		#--------------------------------------------------------------------------
 		"""
 		senddata( message type, message data ) -> boolean status
 
@@ -465,19 +370,18 @@ class BTPeerConnection:
 			if self.debug:
 				traceback.print_exc()
 			return False
-		return True
-		
+		return True		
 
-	#--------------------------------------------------------------------------
-	def recvdata( self ):
-		#--------------------------------------------------------------------------
+	 
+	def recvdata( self, file_recv=False , fname=None):
 		"""
 		recvdata() -> (msgtype, msgdata)
 
 		Receive a message from a peer connection. Returns (None, None)
 		if there was any error.
 		"""
-
+		if not fname and file_recv:
+			fname = os.path.join(os.getcwd(), fname)
 		try:
 			msgtype = self.sd.read( 4 )
 			if not msgtype: return (None, None)
@@ -485,10 +389,27 @@ class BTPeerConnection:
 			lenstr = self.sd.read( 4 )
 			msglen = int(struct.unpack( "!L", lenstr )[0])
 			msg = ""
-
 			while len(msg) != msglen:
 				data = self.sd.read( min(2048, msglen - len(msg)) )
+				if file_recv:
+					if not os.path.isfile(fname):
+						fd = open(fname, 'w')
+						fd.write(data)
+						fd.close()
+						print 'reading data'
+						vlc_instance = vlc.Instance('--fullscreen')
+						player = vlc_instance.media_player_new()
+						media = vlc_instance.media_new(fname)
+						player.set_fullscreen(True)
+						player.set_media(media)
+						player.play()
+					else:
+						fp = open(fname, 'a')
+						fp.write(data)
+						fp.close()	
+				
 				if not len(data):
+					print 'Data is none'
 					break
 				msg += data
 
@@ -504,12 +425,8 @@ class BTPeerConnection:
 
 		return ( msgtype, msg )
 
-	# end recvdata method
-
-
-	#--------------------------------------------------------------------------
+	 
 	def close( self ):
-		#--------------------------------------------------------------------------
 		"""
 		close()
 
@@ -520,12 +437,6 @@ class BTPeerConnection:
 		self.s.close()
 		self.s = None
 		self.sd = None
-
-
-	#--------------------------------------------------------------------------
+	 
 	def __str__( self ):
-	#--------------------------------------------------------------------------
 		return "|%s|" % peerid
-
-
-
