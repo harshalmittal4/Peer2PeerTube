@@ -24,3 +24,9 @@ peer-ip/peer-port: IP address/port of any existing peer in the swarm (known befo
 - [Peerflix - Streaming torrent client for Node.js](https://github.com/mafintosh/peerflix)
 - https://perso.telecom-paristech.fr/drossi/paper/rossi13p2p-b.pdf
 - [Python VLC](https://pypi.org/project/python-vlc/)
+
+### Contributors
+- [Aniket Singh](https://github.com/aniketsingh03)
+- [Harshal Mittal](https://github.com/harshalmittal4)
+- [Harshit Bansal](https://github.com/harshitbansal05)
+- [Vishal Sharma](https://github.com/VishalCR7)
